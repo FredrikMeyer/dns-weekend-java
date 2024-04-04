@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="dns-weekend:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/dns_weekend_jar</output-path>
+    <root id="archive" name="dns-weekend.jar">
+      <element id="module-output" name="dns-weekend" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
