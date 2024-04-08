@@ -30,8 +30,16 @@ public class Query {
         return DNSPacket.parse(response);
     }
 
+    /**
+     * Do a DNS resolve. Given a domain name and a record type (A, AAAA, CNAME, etc), connect to a root
+     * DNS server and recursively resolve the IP of the given domain name.
+     * Example: resolve("wwww.facebook.com", ResourceType.TYPE_A) -> 12.3.4.5 (ish)
+     *
+     * @return The resolved domain name.
+     * @throws Exception If the response contains some resource type that is not implemented.
+     */
     public String resolve(String domainName, ResourceType recordType) throws Exception {
-        // One of the root name server IP's
+        // One of the root name server IPs
         // This one is in Sweden
         // See: https://en.wikipedia.org/wiki/Root_name_server#Root_server_addresses
         var nameServer = "192.36.148.17";
@@ -78,7 +86,7 @@ public class Query {
         return response
                 .answers()
                 .stream()
-                .filter(auth -> auth.type() == ResourceType.TYPE_A)
+                .filter(DNSRecord::isARecord)
                 .findFirst()
                 .map(DNSRecord::data)
                 .map(Util::ipToString)
@@ -89,7 +97,7 @@ public class Query {
         return response
                 .additionals()
                 .stream()
-                .filter(auth -> auth.type() == ResourceType.TYPE_A)
+                .filter(DNSRecord::isARecord)
                 .findFirst()
                 .map(DNSRecord::data)
                 .map(Util::ipToString)
@@ -110,7 +118,7 @@ public class Query {
      * A DNS query consists of a header,
      * Builds a DNS query for a given domain name and ResourceType.
      * @param domainName The domain name.
-     * @param recordType The record type. Not all are suppored.
+     * @param recordType The record type. Not all are supported.
      * @return The DNS query as an array of bytes.
      */
     public byte[] buildQuery(String domainName, ResourceType recordType) {

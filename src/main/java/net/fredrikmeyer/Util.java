@@ -8,7 +8,7 @@ import static org.apache.commons.lang3.ArrayUtils.toObject;
 import static org.apache.commons.lang3.ArrayUtils.toPrimitive;
 
 public class Util {
-    public static byte[] convertToPrimitive(Object[] array) {
+    private static byte[] convertToPrimitive(Object[] array) {
         Byte[] containers = Arrays.stream(array).map(obj -> (Byte) obj).toArray(Byte[]::new);
 
         return toPrimitive(containers);

@@ -60,8 +60,8 @@ public record DNSQuestion(byte[] name,
         byte[] nameBytes = DNSRecord.decodeName(byteBuffer);
 
         ResourceType type = ResourceType.fromValue(byteBuffer.getChar());
-
         ResourceClass clazz = ResourceClass.fromValue(byteBuffer.getChar());
+
         return new DNSQuestion(nameBytes,
                 type,
                 clazz);

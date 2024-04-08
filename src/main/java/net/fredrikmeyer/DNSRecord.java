@@ -26,9 +26,12 @@ public record DNSRecord(byte[] name,
         int dataLength = bs.getChar();
 
         byte[] data;
+        // Different types have different kind of data
         if (type == ResourceType.TYPE_NS || type == ResourceType.TYPE_CNAME) {
             data = decodeName(bs);
         } else if (type == ResourceType.TYPE_AUTHORITY) {
+            // There's a lot more data here. But need to find better way.
+            // Probably best to decode completely to a Record type.
             data = decodeName(bs);
             decodeName(bs);
             bs.getInt();
@@ -118,5 +121,9 @@ public record DNSRecord(byte[] name,
                 }
             }
         };
+    }
+
+    public boolean isARecord() {
+        return type == ResourceType.TYPE_A;
     }
 }

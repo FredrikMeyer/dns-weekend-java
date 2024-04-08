@@ -4,7 +4,44 @@ import org.apache.commons.cli.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        Options opts = createOptions();
 
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter formatter = new HelpFormatter();
+
+        CommandLine cmd = null;
+
+        try {
+            cmd = parser.parse(opts,
+                    args);
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+            formatter.printHelp("utility-name",
+                    opts);
+
+            System.exit(1);
+        }
+
+        String domainName = cmd.getOptionValue("url");
+        String recordType = cmd.getOptionValue("record-type");
+
+        if (recordType == null) {
+            recordType = "A";
+        }
+
+        System.out.println("Asking for: " + domainName);
+
+        Query query = new Query();
+
+        var resourceType = fromCode(recordType);
+
+        String s = query.resolve(domainName,
+                resourceType);
+
+        System.out.println("Answer: " + s);
+    }
+
+    private static Options createOptions() {
         Options opts = new Options();
         Option url = new Option("u",
                 "url",
@@ -26,45 +63,7 @@ public class Main {
                 "IP address");
         ipAddressOption.setRequired(false);
         opts.addOption(ipAddressOption);
-
-        CommandLineParser parser = new DefaultParser();
-        HelpFormatter formatter = new HelpFormatter();
-
-        CommandLine cmd = null; //not a good practice, it serves it purpose
-
-        try {
-            cmd = parser.parse(opts,
-                    args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            formatter.printHelp("utility-name",
-                    opts);
-
-            System.exit(1);
-        }
-
-        String domainName = cmd.getOptionValue("url");
-        String recordType = cmd.getOptionValue("record-type");
-        String ipAddress = cmd.getOptionValue("ip");
-
-        if (recordType == null) {
-            recordType = "A";
-        }
-
-        if (ipAddress == null) {
-            ipAddress = "8.8.8.8";
-        }
-
-        System.out.println("Asking for: " + domainName);
-
-        Query query = new Query();
-
-        var resourceType = fromCode(recordType);
-
-        String s = query.resolve(domainName,
-                resourceType);
-
-        System.out.println("Answer: " + s);
+        return opts;
     }
 
     public static ResourceType fromCode(String code) {
