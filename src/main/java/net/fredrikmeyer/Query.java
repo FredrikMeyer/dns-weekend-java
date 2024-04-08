@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.stream.Stream;
 
 public class Query {
     private final Random randomGenerator;
@@ -21,17 +19,100 @@ public class Query {
         this.randomGenerator = new Random();
     }
 
-    public String lookupDomain(String domain) throws Exception {
-        var query = buildQuery(domain,
-                ResourceType.TYPE_A);
-        byte[] response = doQuery(query,
+    private DNSPacket sendQuery(String ipAddress, String domainName, ResourceType recordType) throws Exception {
+        byte[] queryBytes = buildQuery(domainName,
+                recordType);
+
+        byte[] response = doQuery(queryBytes,
+                ipAddress,
                 DatagramSocket::new);
 
-        var result = DNSPacket.parse(response);
-        System.out.println(result);
-        return Util.ipToString(result.answers().getFirst().data());
+        return DNSPacket.parse(response);
     }
 
+    public String resolve(String domainName, ResourceType recordType) throws Exception {
+        // One of the root name server IP's
+        // This one is in Sweden
+        // See: https://en.wikipedia.org/wiki/Root_name_server#Root_server_addresses
+        var nameServer = "192.36.148.17";
+
+        while (true) {
+            System.out.println("Querying " + nameServer + " for " + domainName + ".");
+
+            var response = sendQuery(nameServer,
+                    domainName,
+                    recordType);
+
+            if (getAnswer(response) instanceof String answ) {
+                return answ;
+            } else if (getNameServerIP(response) instanceof String nameServerIP) {
+                System.out.println("Name server IP: " + nameServerIP);
+                nameServer = nameServerIP;
+            } else if (getNameServer(response) instanceof String nsDomain) {
+                System.out.printf("Doing recursive resolve: " + nsDomain);
+                nameServer = resolve(nsDomain,
+                        ResourceType.TYPE_A);
+            } else if (getCName(response) instanceof String cName) {
+                System.out.println("Got CNAME: " + cName + ". Redirecting.");
+                return resolve(cName,
+                        recordType);
+            } else {
+                System.out.println(response);
+                throw new Exception("Should not get here: " + nameServer + ". Domain: " + domainName + ". Type: " + recordType);
+            }
+        }
+    }
+
+    private String getCName(DNSPacket response) {
+        return response
+                .answers()
+                .stream()
+                .filter(auth -> auth.type() == ResourceType.TYPE_CNAME)
+                .findFirst()
+                .map(DNSRecord::data)
+                .map(String::new)
+                .orElse(null);
+    }
+
+    private String getAnswer(DNSPacket response) {
+        return response
+                .answers()
+                .stream()
+                .filter(auth -> auth.type() == ResourceType.TYPE_A)
+                .findFirst()
+                .map(DNSRecord::data)
+                .map(Util::ipToString)
+                .orElse(null);
+    }
+
+    private String getNameServerIP(DNSPacket response) throws Exception {
+        return response
+                .additionals()
+                .stream()
+                .filter(auth -> auth.type() == ResourceType.TYPE_A)
+                .findFirst()
+                .map(DNSRecord::data)
+                .map(Util::ipToString)
+                .orElse(null);
+    }
+
+    private String getNameServer(DNSPacket response) throws Exception {
+        return response
+                .authorities()
+                .stream()
+                .filter(auth -> auth.type() == ResourceType.TYPE_NS)
+                .findFirst()
+                .map(dnsRecord -> new String(dnsRecord.data()))
+                .orElse(null);
+    }
+
+    /**
+     * A DNS query consists of a header,
+     * Builds a DNS query for a given domain name and ResourceType.
+     * @param domainName The domain name.
+     * @param recordType The record type. Not all are suppored.
+     * @return The DNS query as an array of bytes.
+     */
     public byte[] buildQuery(String domainName, ResourceType recordType) {
         byte[] encodedName = DNSQuestion.encodeName(domainName);
         int id = this.randomGenerator.nextInt(0,
@@ -48,26 +129,28 @@ public class Query {
                 recordType,
                 ResourceClass.IN);
 
-        Object[] array = Stream
-                .of(header.toBytes(),
-                        question.toBytes())
-                .collect(() -> new ArrayList<Byte>(),
-                        (acc, curr) -> {
-                            for (byte b : curr) {
-                                acc.add(b);
-                            }
-                        },
-                        ArrayList::addAll)
-                .toArray();
+        var headerBytes = header.toBytes();
+        var questionBytes = question.toBytes();
+        var totalLength = headerBytes.length + questionBytes.length;
+        var result = new byte[totalLength];
+        System.arraycopy(headerBytes,
+                0,
+                result,
+                0,
+                headerBytes.length);
+        System.arraycopy(questionBytes,
+                0,
+                result,
+                headerBytes.length,
+                questionBytes.length);
 
-        byte[] result = Util.convertToPrimitive(array);
         return result;
     }
 
-    public static byte[] doQuery(byte[] query, SocketProvider provider) {
+    public static byte[] doQuery(byte[] query, String ipAddress, SocketProvider provider) {
         try (DatagramSocket socket = provider.provideSocket()) {
-            // Connect to the Google DNS server
-            socket.connect(new InetSocketAddress("1.1.1.1",
+            // Connect to the DNS server. DNS queries are done with port 53.
+            socket.connect(new InetSocketAddress(ipAddress,
                     53));
 
             // Send a packet over UDP
@@ -79,10 +162,8 @@ public class Query {
                     recBytes.length);
             socket.receive(receivePacket);
 
-            byte[] shortBytes = Arrays.copyOf(recBytes,
+            return Arrays.copyOf(recBytes,
                     receivePacket.getLength());
-
-            return shortBytes;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

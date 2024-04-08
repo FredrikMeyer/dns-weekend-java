@@ -43,6 +43,7 @@ class QueryTest {
         byte[] query = new Query(mock).buildQuery("example.com",
                 ResourceType.TYPE_A);
         byte[] result = doQuery(query,
+                "8.8.8.8",
                 DatagramSocket::new);
 
         System.out.println(Arrays.toString(result));

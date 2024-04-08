@@ -5,9 +5,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
-import static org.apache.commons.lang3.ArrayUtils.toObject;
 
 public record DNSQuestion(byte[] name,
                           ResourceType type,
@@ -48,6 +45,7 @@ public record DNSQuestion(byte[] name,
         return result;
     }
 
+
     public byte[] toBytes() {
         return ByteBuffer
                 .allocate(name.length + 4)
@@ -57,51 +55,9 @@ public record DNSQuestion(byte[] name,
                 .array();
     }
 
-    public static byte[] decodeName(final ByteBuffer bais) throws IOException {
-        // (64 & 0b11000000) > 0
-        ArrayList<Byte> bytes = new ArrayList<>();
 
-        int length = bais.get();
-        while (length != 0) {
-            if ((length & 0b1100_0000) > 0) {
-                // decode compressed name
-                byte[] compressedName = decodeCompressedName(bais,
-                        length);
-                bytes.addAll(Arrays.asList(toObject(compressedName)));
-                break;
-            } else {
-                byte[] nameBytes = new byte[length];
-                bais.get(nameBytes);
-                List<Byte> part = Arrays.stream(toObject(nameBytes)).toList();
-                bytes.addAll(part);
-                length = bais.get();
-            }
-
-            if (length != 0) {
-                bytes.add((byte) 46); // Add punctuation mark
-            }
-        }
-
-        return Util.convertToPrimitive(bytes);
-    }
-
-    private static byte[] decodeCompressedName(final ByteBuffer bb, final int length) throws IOException {
-        var pointerBytes = new byte[]{(byte) (length & 0b0011_1111), bb.get()};
-        int pointer = ByteBuffer.wrap(pointerBytes).getChar();
-        int currentPos = bb.position();
-
-        bb.position(pointer);
-
-        var result = decodeName(bb);
-
-        bb.position(currentPos);
-
-        return result;
-    }
-
-    public static DNSQuestion parseBytes(final ByteBuffer byteBuffer) throws IOException {
-
-        byte[] nameBytes = decodeName(byteBuffer);
+    public static DNSQuestion parseBytes(ByteBuffer byteBuffer) throws IOException {
+        byte[] nameBytes = DNSRecord.decodeName(byteBuffer);
 
         ResourceType type = ResourceType.fromValue(byteBuffer.getChar());
 
@@ -113,10 +69,13 @@ public record DNSQuestion(byte[] name,
 
     @Override
     public String toString() {
-        return "DNSQuestion{" +
-                "name=" + new String(name) +
-                ", type=" + type +
-                ", clazz=" + clazz +
-                '}';
+        String format = "%32s%32s%32s";
+        return "\n" + "DNSQuestion: \n" + String.format(format,
+                "Name",
+                "Type",
+                "Class") + "\n" + String.format(format,
+                new String(name),
+                type,
+                clazz) + "\n";
     }
 }
