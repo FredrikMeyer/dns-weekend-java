@@ -30,8 +30,7 @@ class DNSQuestionTest {
     void encodeName() {
         String domainName = "google.com";
         byte[] encodedName = DNSQuestion.encodeName(domainName);
-
-        System.out.println(Arrays.toString(encodedName));
+        
         assertArrayEquals(new byte[]{(byte) 0x06, (byte) 103, (byte) 111, (byte) 111, (byte) 103, (byte) 108,
                         (byte) 101, (byte) 3, (byte) 99, (byte) 111, (byte) 109, (byte) 0x00},
                 encodedName);

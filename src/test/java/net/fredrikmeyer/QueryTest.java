@@ -91,8 +91,6 @@ class QueryTest {
         byte[] result = queryInstance.doQuery(query,
                 "8.8.8.8");
 
-        System.out.println(Arrays.toString(result));
-
         byte[] truncated = Arrays.copyOf(result,
                 36);
 

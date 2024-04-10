@@ -53,8 +53,6 @@ public class Query {
                     domainName,
                     recordType);
 
-            System.out.println("RESPONSE: " + response);
-
             if (getAnswer(response) instanceof String answ) {
                 return answ;
             } else if (getNameServerIP(response) instanceof String nameServerIP) {
@@ -174,8 +172,6 @@ public class Query {
             DatagramPacket receivePacket = new DatagramPacket(recBytes,
                     recBytes.length);
             socket.receive(receivePacket);
-
-            System.out.println(Arrays.toString(recBytes));
 
             return Arrays.copyOf(recBytes,
                     receivePacket.getLength());
