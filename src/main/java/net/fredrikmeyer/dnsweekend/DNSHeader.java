@@ -1,4 +1,4 @@
-package net.fredrikmeyer;
+package net.fredrikmeyer.dnsweekend;
 
 import java.nio.ByteBuffer;
 

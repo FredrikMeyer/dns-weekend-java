@@ -1,4 +1,4 @@
-package net.fredrikmeyer;
+package net.fredrikmeyer.dnsweekend;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -93,7 +93,7 @@ public class Query {
                 .orElse(null);
     }
 
-    private String getNameServerIP(DNSPacket response) throws Exception {
+    private String getNameServerIP(DNSPacket response) {
         return response
                 .additionals()
                 .stream()
@@ -104,7 +104,7 @@ public class Query {
                 .orElse(null);
     }
 
-    private String getNameServer(DNSPacket response) throws Exception {
+    private String getNameServer(DNSPacket response) {
         return response
                 .authorities()
                 .stream()

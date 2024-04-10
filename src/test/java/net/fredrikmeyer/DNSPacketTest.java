@@ -1,5 +1,7 @@
 package net.fredrikmeyer;
 
+import net.fredrikmeyer.dnsweekend.DNSPacket;
+import net.fredrikmeyer.dnsweekend.Util;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

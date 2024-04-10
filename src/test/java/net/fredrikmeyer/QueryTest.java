@@ -1,13 +1,14 @@
 package net.fredrikmeyer;
 
+import net.fredrikmeyer.dnsweekend.Query;
+import net.fredrikmeyer.dnsweekend.ResourceType;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.util.Arrays;
 import java.util.Random;
 
-import static net.fredrikmeyer.Query.doQuery;
+import static net.fredrikmeyer.dnsweekend.Query.doQuery;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -36,7 +37,7 @@ class QueryTest {
     }
 
     @Test
-    void testDoQuery() throws IOException {
+    void testDoQuery() {
         Random mock = mock(Random.class);
         when(mock.nextInt(anyInt(),
                 anyInt())).thenReturn(0x1314);

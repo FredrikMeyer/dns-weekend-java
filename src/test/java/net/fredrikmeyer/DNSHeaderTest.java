@@ -1,12 +1,12 @@
 package net.fredrikmeyer;
 
+import net.fredrikmeyer.dnsweekend.DNSHeader;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DNSHeaderTest {
 
@@ -30,7 +30,7 @@ class DNSHeaderTest {
     }
 
     @Test
-    void testParseHeader() throws IOException {
+    void testParseHeader() {
         var bytes = new byte[]{(byte) 0x13, (byte) 0x14, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x01,
                 (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
         ByteBuffer bs = ByteBuffer.wrap(bytes);
@@ -50,7 +50,7 @@ class DNSHeaderTest {
     }
 
     @Test
-    void testParseHeaderAgain() throws IOException {
+    void testParseHeaderAgain() {
         var bytes = new byte[]{96, 86, (byte) 0x81, (byte) 0x80, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, 0, 0};
 
         ByteBuffer bs = ByteBuffer.wrap(bytes);

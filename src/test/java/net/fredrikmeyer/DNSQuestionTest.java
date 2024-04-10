@@ -1,5 +1,8 @@
 package net.fredrikmeyer;
 
+import net.fredrikmeyer.dnsweekend.DNSQuestion;
+import net.fredrikmeyer.dnsweekend.ResourceClass;
+import net.fredrikmeyer.dnsweekend.ResourceType;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
