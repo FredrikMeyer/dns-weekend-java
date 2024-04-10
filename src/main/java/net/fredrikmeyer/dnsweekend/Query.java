@@ -112,7 +112,8 @@ public class Query {
                 .stream()
                 .filter(auth -> auth.type() == ResourceType.TYPE_NS)
                 .findFirst()
-                .map(dnsRecord -> new String(dnsRecord.data()))
+                .map(DNSRecord::data)
+                .map(String::new)
                 .orElse(null);
     }
 
