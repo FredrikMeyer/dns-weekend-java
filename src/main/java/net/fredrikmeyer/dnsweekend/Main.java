@@ -33,7 +33,7 @@ public class Main {
 
         Query query = new Query();
 
-        var resourceType = fromCode(recordType);
+        var resourceType = ResourceType.fromCode(recordType);
 
         String s = query.resolve(domainName,
                 resourceType);
@@ -64,16 +64,5 @@ public class Main {
         ipAddressOption.setRequired(false);
         opts.addOption(ipAddressOption);
         return opts;
-    }
-
-    public static ResourceType fromCode(String code) {
-        if (code == null) return null;
-        return switch (code) {
-            case "TXT" -> ResourceType.TYPE_TXT;
-            case "A" -> ResourceType.TYPE_A;
-            case "NS" -> ResourceType.TYPE_NS;
-            case "CNAMe" -> ResourceType.TYPE_CNAME;
-            default -> null;
-        };
     }
 }

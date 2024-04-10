@@ -35,4 +35,15 @@ public enum ResourceType {
         }
         return res;
     }
+
+    public static ResourceType fromCode(String code) {
+        if (code == null) return null;
+        return switch (code) {
+            case "TXT" -> ResourceType.TYPE_TXT;
+            case "A" -> ResourceType.TYPE_A;
+            case "NS" -> ResourceType.TYPE_NS;
+            case "CNAMe" -> ResourceType.TYPE_CNAME;
+            default -> null;
+        };
+    }
 }

@@ -2,21 +2,24 @@ package net.fredrikmeyer.dnsweekend;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Random;
 
 public class Query {
     private final Random randomGenerator;
+    private final SocketProvider socketProvider;
     final int RECURSION_DESIRED = 1 << 8;
 
-    public Query(Random randomGenerator) {
+    public Query(Random randomGenerator, SocketProvider socketProvider) {
         this.randomGenerator = randomGenerator;
+        this.socketProvider = socketProvider;
     }
 
     public Query() {
         this.randomGenerator = new Random();
+        this.socketProvider = RealSocket::new;
     }
 
     private DNSPacket sendQuery(String ipAddress, String domainName, ResourceType recordType) throws Exception {
@@ -24,8 +27,7 @@ public class Query {
                 recordType);
 
         byte[] response = doQuery(queryBytes,
-                ipAddress,
-                DatagramSocket::new);
+                ipAddress);
 
         return DNSPacket.parse(response);
     }
@@ -50,6 +52,8 @@ public class Query {
             var response = sendQuery(nameServer,
                     domainName,
                     recordType);
+
+            System.out.println("RESPONSE: " + response);
 
             if (getAnswer(response) instanceof String answ) {
                 return answ;
@@ -117,6 +121,7 @@ public class Query {
     /**
      * A DNS query consists of a header,
      * Builds a DNS query for a given domain name and ResourceType.
+     *
      * @param domainName The domain name.
      * @param recordType The record type. Not all are supported.
      * @return The DNS query as an array of bytes.
@@ -155,8 +160,8 @@ public class Query {
         return result;
     }
 
-    public static byte[] doQuery(byte[] query, String ipAddress, SocketProvider provider) {
-        try (DatagramSocket socket = provider.provideSocket()) {
+    public byte[] doQuery(byte[] query, String ipAddress) {
+        try (SocketLike socket = this.socketProvider.provideSocket()) {
             // Connect to the DNS server. DNS queries are done with port 53.
             socket.connect(new InetSocketAddress(ipAddress,
                     53));
@@ -169,6 +174,8 @@ public class Query {
             DatagramPacket receivePacket = new DatagramPacket(recBytes,
                     recBytes.length);
             socket.receive(receivePacket);
+
+            System.out.println(Arrays.toString(recBytes));
 
             return Arrays.copyOf(recBytes,
                     receivePacket.getLength());
